@@ -10,13 +10,16 @@ export class counterApp extends DDDSuper(LitElement) {
     super();
     this.title = "";
     this.count = 0;
-    this.max = 10;
+    this.min = 10;
+    this.max = 25;
   }
 
   static get properties() {
     return {
       title: { type: String },
       count: { type: Number },
+      min: { type: Number },
+      max: { type: Number },
     };
   }
 
@@ -34,23 +37,42 @@ export class counterApp extends DDDSuper(LitElement) {
         .wrapper {
           margin: var(--ddd-spacing-2);
           padding: var(--ddd-spacing-4);
+          text-align: center;
         }
-        div {
-          padding: 0;
-          margin: 0;
+        .number {
+          font-size: 3em;
+          margin-bottom: var(--ddd-spacing-4);
+        }
+        .buttons {
+          display: flex;
+          justify-content: center;
+          gap: var(--ddd-spacing-4);
+        }
+        button {
+          padding: var(--ddd-spacing-2) var(--ddd-spacing-4);
+          font-size: 1.5em;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+        button:hover {
+          background-color: rgba(0, 0, 0, 0.1);
+        }
+        button:focus {
+          outline: none;
+          border: 2px solid var(--ddd-theme-primary);
         }
       `,
     ];
   }
 
-  increment(e) {
+  increment() {
     if (this.count < this.max) {
       this.count++;
     }
   }
 
-  decrement(e) {
-    if (this.count > 0) {
+  decrement() {
+    if (this.count > this.min) {
       this.count--;
     }
   }
@@ -64,34 +86,37 @@ export class counterApp extends DDDSuper(LitElement) {
   }
 
   updated(changedProperties) {
-    if (changedProperties.has("count")) 
-      {
-      if (this.count > 0 && this.count <= this.max) 
-        {
+    if (changedProperties.has("count")) {
+      if (this.count === this.max || this.count === this.min) {
+        this.requestUpdate();
+      }
+      if (this.count === 21) {
         this.makeItRain();
       }
     }
   }
 
   render() {
+    const numberStyle = this.count >= 21
+      ? 'color: red;'
+      : this.count <= this.min || this.count >= this.max
+      ? 'color: orange;'
+      : '';
+
     return html`
       <div class="wrapper">
         <confetti-container id="confetti"></confetti-container>
-        <div class="number">${this.count}</div>
+        <div class="number" style="${numberStyle}">${this.count}</div>
         <div class="buttons">
-          <button title="decrement" @click=${this.decrement}>-</button>
-          <button title="increment" @click=${this.increment}>+</button>
+          <button @click=${this.decrement} ?disabled="${this.count <= this.min}">-</button>
+          <button @click=${this.increment} ?disabled="${this.count >= this.max}">+</button>
         </div>
       </div>
     `;
   }
 
-  /**
-   * haxProperties integration via file reference
-   */
   static get haxProperties() {
-    return new URL(`./lib/${this.tag}.haxProperties.json`, import.meta.url)
-      .href;
+    return new URL(`./lib/${this.tag}.haxProperties.json`, import.meta.url).href;
   }
 }
 
